@@ -6,7 +6,7 @@
 /*   By: gsahyoun <gsahyoun@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/09 10:20:56 by gsahyoun          #+#    #+#             */
-/*   Updated: 2025/10/15 08:14:08 by gsahyoun         ###   ########.fr       */
+/*   Updated: 2025/10/15 18:31:49 by gsahyoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,6 @@ size_t	ft_strlen(const char *s);
 int		print_char(char c);
 int		print_string(char *str);
 int		print_int(int n);
-int		print_hexa(unsigned int value, int asc);
+int		print_hexa(unsigned int value);
 
 #endif

@@ -1,4 +1,4 @@
-NAME = libftprintf.a
+NAME = ft_printf
 
 CC = cc
 CFLAGS = -Wall -Wextra 
@@ -9,7 +9,6 @@ OBJS = $(SRCS:.c=.o)
 all: $(NAME)
 
 $(NAME): $(OBJS)
-	ar rcs $(NAME) $(OBJS)
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
