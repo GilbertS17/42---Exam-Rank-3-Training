@@ -122,9 +122,21 @@ int ft_hexlen(unsigned int str)
 	return i;
 }
 
-char *hex_to_str(unsigned int str, int len)
+char *hex_to_str(unsigned int value, int len)
 {
-	char *str = (char *)malloc (sizeof(char) * len + 1)
+	char *str = (char *)malloc(len + 1);
+	if (!str)
+		return NULL;
+	str[len] = '\0';
+	while (len--)
+	{
+		if (value % 16 <= 9)
+			str[len] = (value % 16) + '0';
+		else
+			str[len] = (value % 16) + 87;
+		value /= 16;	 	
+	}
+	return str;
 }
 
 int print_hex (unsigned int str)
@@ -132,7 +144,9 @@ int print_hex (unsigned int str)
 	int len = ft_hexlen(str);
 	if (str == 0)
 		return print_char(0);
-	char *str = hex_to_str(str, len);
+	char *res = hex_to_str(str, len);
+	ft_putstr_fd(res, 1);
+	return len;
 }
 
 
@@ -140,21 +154,21 @@ int print_hex (unsigned int str)
 
 int main (void)
 {
-	print_int(-90);
-	return 0;
+	print_hex(115);
+	return 0; 	
 }
 
-int ft_printf(const char *format, ... )
-{
-	int i = 0;
-	va_list argv;
+// int ft_printf(const char *format, ... )
+// {
+// 	int i = 0;
+// 	va_list argv;
 
-	va_start (argv, format);
-	if (!format)
-		return 0;
-	while (*format)
-	{
+// 	va_start (argv, format);
+// 	if (!format)
+// 		return 0;
+// 	while (*format)
+// 	{
 
-		format++;
-	}
-}
+// 		format++;
+// 	}
+// }
