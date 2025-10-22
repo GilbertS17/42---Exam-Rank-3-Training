@@ -5,7 +5,7 @@
 int match_space(FILE *f)
 {
 	int c;
-	while ((c = fgetc(c)) != EOF)
+	while ((c = fgetc(f)) != EOF)
 	{
 		if (!isspace(c))
 		{
@@ -28,20 +28,64 @@ int match_char(FILE *f, char c)
 
 int scan_char(FILE *f, va_list ap)
 {
-	
-	return (0);
+	int c = fgetc(f);
+	if (c == EOF)
+		return 0;
+	char *ptr = va_arg(ap, char *);
+	*ptr = (char)c;
+	return (1);
 }
 
 int scan_int(FILE *f, va_list ap)
 {
-        // You may insert code here
-    return (0);
+    int c, sign = 1, value = 0;
+
+    match_space(f);
+
+    c = fgetc(f);
+    if (c == '-' || c == '+')
+    {
+        if (c == '-')
+            sign = -1;
+        c = fgetc(f);
+    }
+
+    if (!isdigit(c))
+    {
+        if (c != EOF) ungetc(c, f);
+        return 0;
+    }
+
+    while (isdigit(c))
+    {
+        value = value * 10 + (c - '0');
+        c = fgetc(f);
+    }
+
+    if (c != EOF)
+        ungetc(c, f);
+
+    int *ptr = va_arg(ap, int *);
+    *ptr = value * sign;
+    return 1;
 }
 
 int scan_string(FILE *f, va_list ap)
 {
-        // You may insert code here
-    return (0);
+    match_space(f);
+
+    char *str = va_arg(ap, char *);
+    int c;
+    int i = 0;
+
+    while ((c = fgetc(f)) != EOF && !isspace(c))
+        str[i++] = (char)c;
+
+    if (c != EOF)
+        ungetc(c, f);
+
+    str[i] = '\0';
+    return i > 0 ? 1 : 0;
 }
 
 
@@ -105,6 +149,18 @@ int ft_scanf(const char *format, ...)
 
 	va_start(args, format);
 	int ret = ft_vfscanf(stdin, format, args);
-	// ...
-	return ret;
+	va_end(args);
+    return ret;
+}
+
+int main(void)
+{
+    int n;
+    char s[100];
+    char c;
+
+    printf("Enter: ");
+    int res = ft_scanf("%d %s %c", &n, s, &c);
+    printf("Scanned %d values: n=%d s=%s c=%c\n", res, n, s, c);
+    return 0;
 }
