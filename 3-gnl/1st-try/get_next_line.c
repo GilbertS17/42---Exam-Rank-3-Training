@@ -1,6 +1,6 @@
 #include "get_next_line.h"
 
-int ft_strlen (char *str)
+int ft_strlen(char *str)
 {
     int i = 0;
     while (str[i])
@@ -11,7 +11,6 @@ int ft_strlen (char *str)
 int ft_strchr(char *str, int c)
 {
     int i = 0;
-
     while (str[i])
     {
         if (str[i] == (char)c)
@@ -21,26 +20,22 @@ int ft_strchr(char *str, int c)
     return 0;
 }
 
-char *ft_bzero (int size, char *str)
+void ft_bzero(void *s, int n)
 {
-    int i = size;
-    while (i != 0)
-    {
-        str[i] = 0;
-        i--;
-    }
-    return str;
+    unsigned char *ptr;
+
+    ptr = s;
+    while (n--)
+        *ptr++ = '\0';
 }
 
-char *ft_malloc (int size, int c)
+char *ft_calloc(int size, int count)
 {
-    int str;
+    char *ptr;
 
-    str = malloc ((size + c) * sizeof(char));
-    if (!str)
-        return NULL;
-    str = ft_bzero(size, str);
-    return str;
+    ptr = malloc(size * count);
+    ft_bzero(ptr, size * count);
+    return ptr;
 }
 
 char *ft_strjoin(char *s1, char *s2)
@@ -48,24 +43,22 @@ char *ft_strjoin(char *s1, char *s2)
     char *str;
     char *start;
 
-    str = malloc((ft_strlen(s1) + ft_strlen(s2) + 1) * sizeof(char));
-    if (!str)
-        return NULL;
+    str = malloc ((ft_strlen(s1) + ft_strlen(s2) + 1) * sizeof(char));
     start = str;
     while (*s1)
         *str++ = *s1++;
     while (*s2)
-        *str++ = *s2;
+        *str++ = *s2++;
     *str = '\0';
-    return str;
+    return start;
 }
 
-char *join_and_free (char *output_text, char *buffer)
+char *ft_join_and_free(char *s1, char *s2)
 {
     char *temp;
-
-    temp = ft_strjoin(output_text, buffer);
-    free(output_text);
+    
+    temp = ft_strjoin(s1, s2);
+    free(s1);
     return temp;
 }
 
@@ -73,36 +66,105 @@ char    *get_next_line(int fd)
 {
     static char *remainder = NULL;
     char *buffer;
-    int bytes_read;
-    int line;
     char *output_text;
+    char *new_text;
+    int bytes_read;
+    int i;
+    int j;
 
     if (fd < 0 || BUFFER_SIZE <= 0)
         return NULL;
-    buffer = malloc((BUFFER_SIZE + 1) * sizeof(char));
+    if (!remainder)
+        remainder = ft_calloc(1, 1);
+    buffer = malloc(BUFFER_SIZE + 1);
     if (!buffer)
-        return NULL;
-    if (!output_text)
     {
-        output_text = ft_malloc(1, 1);
-        if (!output_text)
-            return(free(buffer), NULL);
+        free(remainder);
+        remainder = NULL;
+        return NULL;
     }
     bytes_read = 1;
     while (bytes_read > 0)
     {
-        bytes_read = read (fd, buffer, BUFFER_SIZE);
-        if (bytes_read == -1)
-        {
-            free(buffer);
-            free(output_text);
-            remainder= NULL;
-            return NULL;
-        }
-        buffer[bytes_read] = '\0';
-        line = join_and_free(line, buffer);
-        if (ft_strchr(line, '\n'))
-            break;
+       bytes_read = read(fd, buffer, BUFFER_SIZE);
+       if (bytes_read == -1)
+       {
+        free(remainder);
+        free(buffer);
+        remainder = NULL;
+        return NULL;
+       }
+       buffer[bytes_read] = '\0';
+       remainder = ft_join_and_free(remainder, buffer);
+       if (ft_strchr(remainder, '\n'))
+        break;
     }
+    free(buffer);
+
+
+    if (!remainder || !remainder[0])
+    {
+        free(remainder);
+        remainder = NULL;
+        return NULL;
+    }
+    i = 0;
+    while (remainder[i] && remainder[i] != '\n')
+        i++;
+    output_text = malloc((i + 2) * sizeof(char));
+    if (!output_text)
+        return NULL;
+    i = 0;
+    while (remainder[i] && remainder[i] != '\n')
+    {
+        output_text[i] = remainder[i];
+        i++;
+    }
+    if (remainder[i] != '\n')
+        output_text[i++] = '\n';
+    output_text[i++] = '\0';
+
+    if (!remainder[i])
+	{
+		free(remainder);
+		remainder = NULL;
+		return (output_text);
+	}
     
+    new_text = ft_calloc(ft_strlen(remainder) - i + 1, sizeof(char));
+    if (!new_text)
+    {
+        free(remainder);
+		free(output_text);
+        remainder = NULL;
+        return NULL;
+    }
+    j = 0;
+    while (remainder[i])
+        new_text[j++] = remainder[i++];
+    new_text[j] = '\0';
+    free(remainder);
+    remainder = new_text;
+    return output_text;
+}
+
+#include <fcntl.h>
+#include <stdio.h>
+
+int main (void)
+{
+    int fd = open("test.txt", O_RDONLY);
+    if (fd == -1)
+        printf("Invalid file");
+    char *line = get_next_line(fd);
+    printf("%s\n", line);
+    free(line);
+    line = get_next_line(fd);
+    printf("%s\n", line);
+    free(line);
+    line = get_next_line(fd);
+    printf("%s\n", line);
+    free(line);
+    close(fd);
+    return 0;
 }

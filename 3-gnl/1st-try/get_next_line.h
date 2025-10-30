@@ -1,6 +1,7 @@
 #ifndef GET_NEXT_LINE
 #define GET_NEXT_LINE
 
+
 #ifndef BUFFER_SIZE
 #define BUFFER_SIZE 10
 #endif

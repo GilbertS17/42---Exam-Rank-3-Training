@@ -52,70 +52,105 @@ char *ft_strjoin(char *s1, char *s2)
     return result;
 }
 
-char *get_next_line(int fd)
+static char	*extract_line(char *storage)
 {
-    static char buffer[BUFFER_SIZE];
-    static int buffer_read = 0;
-    static int buffer_pos = 0;
-    char *line;
-    int i = 0;
-    int line_size = 1000;
+	int		i = 0;
+	char	*line;
 
-    if (fd < 0 || BUFFER_SIZE <= 0)
-        return NULL;
-    
-    line = malloc(line_size);
-    if (!line)
-        return NULL;
-    
-    while (1)
-    {
-        if (buffer_pos >= buffer_read)
-        {
-            buffer_read = read(fd, buffer, BUFFER_SIZE);
-            buffer_pos = 0;
-            
-            if (buffer_read == 0)
-                break;
-            else if (buffer_read < 0)
-            {
-                free(line);
-                return NULL;
-            }
-        }
-        line[i++] = buffer[buffer_pos++];
-        if (line[i - 1] == '\n')
-            break;
-    }
-    line[i] = '\0';
-    if (i == 0)
-    {
-        free(line);
-        return NULL;
-    }
-    return line;
+	if (!storage || !storage[0])
+		return (NULL);
+	while (storage[i] && storage[i] != '\n')
+		i++;
+	if (storage[i] == '\n')
+		i++;
+	line = malloc(i + 1);
+	if (!line)
+		return (NULL);
+	for (int j = 0; j < i; j++)
+		line[j] = storage[j];
+	line[i] = '\0';
+	return (line);
 }
 
-// #include <fcntl.h>     // for open()
-// #include <stdio.h>     // for printf()
-// #include <stdlib.h>
-// int	main(void)
-// {
-// 	int		fd;
-// 	char	*line;
-// 	fd = open("test.txt", O_RDONLY);
-// 	if (fd < 0)
-// 	{
-// 		perror("Error opening file");
-// 		return (1);
-// 	}
-// 	line = get_next_line(fd);
-// 	printf("%s", line);
-// 	line = get_next_line(fd);
-// 	printf("%s", line);
-// 	line = get_next_line(fd);
-// 	printf("%s", line);
-// 	free(line);
-// 	close(fd);
-// 	return (0);
-// }
+static char	*remove_extracted_line(char *storage)
+{
+	int		i = 0;
+	int		j = 0;
+	int		len = ft_strlen(storage);
+	char	*new_storage;
+
+	while (storage[i] && storage[i] != '\n')
+		i++;
+	if (!storage[i])
+	{
+		free(storage);
+		return (NULL);
+	}
+	i++; // skip '\n'
+	new_storage = malloc(len - i + 1);
+	if (!new_storage)
+		return (NULL);
+	while (storage[i])
+		new_storage[j++] = storage[i++];
+	new_storage[j] = '\0';
+	free(storage);
+	return (new_storage);
+}
+
+/*------------------ Main Function ------------------*/
+
+char	*get_next_line(int fd)
+{
+	static char	*storage;
+	char		buffer[BUFFER_SIZE + 1];
+	char		*line;
+	int			bytes;
+
+	if (fd < 0 || BUFFER_SIZE <= 0)
+		return (NULL);
+
+	bytes = 1;
+	while (!ft_strchr(storage, '\n') && bytes > 0)
+	{
+		bytes = read(fd, buffer, BUFFER_SIZE);
+		if (bytes < 0)
+		{
+			free(storage);
+			storage = NULL;
+			return (NULL);
+		}
+		buffer[bytes] = '\0';
+		if (bytes > 0)
+			storage = ft_strjoin(storage, buffer);
+	}
+
+	line = extract_line(storage);
+	storage = remove_extracted_line(storage);
+	return (line);
+}
+
+#include <fcntl.h>     // for open()
+#include <stdio.h>     // for printf()
+#include <stdlib.h>
+int	main(void)
+{
+	int		fd;
+	char	*line;
+	fd = open("test.txt", O_RDONLY);
+	if (fd < 0)
+	{
+		perror("Error opening file");
+		return (1);
+	}
+	line = get_next_line(fd);
+	printf("%s", line);
+	free(line);
+	line = get_next_line(fd);
+	printf("%s", line);
+	free(line);
+	line = get_next_line(fd);
+	printf("%s", line);
+	free(line);
+	close(fd);
+	return (0);
+}
