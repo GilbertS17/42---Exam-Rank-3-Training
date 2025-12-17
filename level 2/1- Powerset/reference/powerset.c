@@ -1,42 +1,45 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-void explore(int index, int *set, int n, int current_sum, int target, int *subset, int subset_size)
+void powerset(int *set, int n, int cur_sum, int *sub_set, int subset_size, int goal, int pos)
 {
-    if (index == n)
+    if (pos == n)
     {
-        if (current_sum == target)
+        if (cur_sum == goal)
         {
             for (int i = 0; i < subset_size; i++)
-                printf("%d ", subset[i]);
+            {
+                printf("%d", sub_set[i]);
+                if (i < subset_size - 1)
+                    printf(" ");
+            }
             printf("\n");
         }
         return ;
     }
-    //include index
-    subset[subset_size] = set[index];
-    explore(index + 1, set, n, current_sum + set[index], target, subset, subset_size + 1);
-    //exclude index
-    explore(index + 1, set, n, current_sum, target, subset, subset_size);
+    sub_set[subset_size] = set[pos];
+    powerset(set, n, cur_sum + set[pos], sub_set, subset_size + 1, goal, pos + 1);
+    powerset(set, n ,cur_sum, sub_set, subset_size, goal, pos + 1);
 }
 
-int main(int argc, char **argv)
+int main (int argc, char **argv)
 {
-    if (argc < 2)
-        return 0;
-    int target = atoi(argv[1]);
+    if (argc <= 2)
+        return 1;
+    int goal = atoi(argv[1]);
     int n = argc - 2;
     int *set;
-    set = malloc (sizeof(int) * n);
+    set = malloc(n * sizeof(int));
     if (!set)
         return 1;
     for (int i = 2; i < argc; i++)
         set[i - 2] = atoi(argv[i]);
-    int *subset = malloc(sizeof(int) * n);
-    if (!subset)
+    int *sub_set;
+    sub_set = malloc(n * sizeof(int));
+    if (!sub_set)
         return (free(set), 1);
-    explore(0, set, n, 0, target, subset, 0);
+    powerset(set, n, 0, sub_set, 0, goal, 0);
     free(set);
-    free(subset);
+    free(sub_set);
     return 0;
 }
