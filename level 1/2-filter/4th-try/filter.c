@@ -19,7 +19,7 @@ int main (int argc, char **argv)
     char *s = argv[1];
     char *buffer;
     int len = strlen(s);
-    buffer = malloc (BUFFER_SIZE * sizeof(char));
+    buffer = malloc ((BUFFER_SIZE + 1) * sizeof(char));
     if (!buffer)
         return (write(2, "Error: malloc", 13), 1);
     int bytes;
@@ -43,5 +43,6 @@ int main (int argc, char **argv)
     }
     if (bytes < 0)
         return (write(2, "Error: read", 11), 1);
+    free(buffer);
     return 0;
 }

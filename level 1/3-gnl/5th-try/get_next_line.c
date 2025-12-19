@@ -1,23 +1,8 @@
 #include "get_next_line.h"
 
-static void ft_bzero(void *str, int n)
-{
-    unsigned char *ptr;
-    ptr = str;
-    while (n--)
-        *ptr++ = '\0';
-}
-
-static char *ft_calloc(int nmem, int size)
-{
-    char *str = malloc (size * nmem);
-    ft_bzero(str, nmem * size);
-    return str;
-}
-
 int ft_strlen(char *str)
 {
-    if (str == NULL)
+    if (!str)
         return 0;
     int i = 0;
     while (str[i])
@@ -25,28 +10,18 @@ int ft_strlen(char *str)
     return i;
 }
 
-static char *ft_strjoin(char *s1, char *s2)
+void ft_bzero(void *str, int n)
 {
-    char *start, *str;
-    str = malloc((ft_strlen(s1) + ft_strlen(s2) + 1) * sizeof(char));
-    start = str;
-    while (*s1)
-        *str++ = *s1++;
-    while (*s2)
-        *str++ = *s2++;
-    *str = '\0';
-    return start;
+    unsigned char *ptr;
+    ptr = str;
+    while (n--)
+        *ptr++ = '\0';
 }
 
-static char *free_and_join(char *s1, char *s2)
+int ft_strchr(char *str, char c)
 {
-    char *temp = ft_strjoin(s1, s2);
-    free(s1);
-    return temp;
-}
-
-static int ft_strchr(char *str, char c)
-{
+    if (!str)
+        return 0;
     int i = 0;
     while (str[i])
     {
@@ -57,7 +32,46 @@ static int ft_strchr(char *str, char c)
     return 0;
 }
 
-char *get_next_line(int fd)
+char *ft_strjoin(char *s1 ,char *s2)
+{
+    int i = 0, j = 0;
+    char *str;
+
+    if (!s1 || !s2)
+        return NULL;
+
+    str = malloc(ft_strlen(s1) + ft_strlen(s2) + 1);
+    if (!str)
+        return NULL;
+
+    while (s1[i])
+        str[j++] = s1[i++];
+    i = 0;
+    while (s2[i])
+        str[j++] = s2[i++];
+    str[j] = '\0';
+    return str;
+}
+
+char *join_and_free(char *s1 ,char *s2)
+{
+    char *tmp;
+    
+    tmp = ft_strjoin(s1, s2);
+    free(s1);
+    return tmp;
+}
+
+char *ft_calloc (int nmem, int size)
+{
+    char *ptr = malloc (nmem * size);
+    if (!ptr)
+        return NULL;
+    ft_bzero(ptr, nmem * size);
+    return ptr;
+}
+
+char    *get_next_line(int fd)
 {
     static char *remainder = NULL;
     char *buffer;
@@ -67,29 +81,29 @@ char *get_next_line(int fd)
         return NULL;
     if (!remainder)
         remainder = ft_calloc(1, 1);
-    buffer = malloc ((BUFFER_SIZE + 1 )* sizeof(char));
+    buffer = malloc(BUFFER_SIZE + 1);
     if (!buffer)
-        return NULL;
+        return (free(remainder), NULL);
     bytes = 1;
     while (bytes > 0)
     {
         bytes = read(fd, buffer, BUFFER_SIZE);
         if (bytes == -1)
         {
-            free (remainder);
-            free (buffer);
+            free(buffer);
+            free(remainder);
             remainder = NULL;
             return NULL;
         }
         buffer[bytes] = '\0';
-        remainder = free_and_join(remainder, buffer);
+        remainder = join_and_free(remainder, buffer);
         if (ft_strchr(remainder, '\n'))
             break;
     }
     free(buffer);
     if (!remainder || !remainder[0])
     {
-        free (remainder);
+        free(remainder);
         remainder = NULL;
         return NULL;
     }
@@ -99,7 +113,7 @@ char *get_next_line(int fd)
     char *output = ft_calloc((i + 2), sizeof(char));
     if (!output)
     {
-        free (remainder);
+        free(remainder);
         remainder = NULL;
         return NULL;
     }
@@ -108,22 +122,21 @@ char *get_next_line(int fd)
     {
         output[i] = remainder[i];
         i++;
-    }
+    }   
     if (remainder[i] == '\n')
         output[i] = remainder[i++];
     output[i] = '\0';
     if (!remainder[i])
     {
-        free (remainder);
+        free(remainder);
         remainder = NULL;
         return output;
     }
-
     char *new_txt = malloc((ft_strlen(remainder) - i + 1) * sizeof(char));
     if (!new_txt)
     {
-        free (remainder);
-        free (output);
+        free(remainder);
+        free(output);
         remainder = NULL;
         return NULL;
     }
@@ -135,12 +148,13 @@ char *get_next_line(int fd)
     remainder = new_txt;
     return output;
 }
+#include <fcntl.h>
+#include <stdio.h>
 
-int main(void)
+int main (int argc, char **argv)
 {
     int fd = open("test.txt", O_RDONLY);
     char *line;
-
     while ((line = get_next_line(fd)) != NULL)
     {
         printf("%s\n", line);
